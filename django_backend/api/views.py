@@ -58,3 +58,10 @@ def get_profile(request, ticker):
         return Response(get_company_profile(ticker))
     except Exception as e:
         return Response({"error": str(e)}, status=500)
+
+@api_view(["GET"])
+def get_analysis_data(request, ticker):
+    try:
+        return Response(get_analysis_data_as_json(ticker))
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)

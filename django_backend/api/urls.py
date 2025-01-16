@@ -38,4 +38,9 @@ urlpatterns = [
         views.get_profile,
         name="get-profile"
     ),
+    path(
+        'get_analysis_data/<str:ticker>/',
+        views.get_analysis_data,
+        name="get-analysis-data"
+    ),
 ]

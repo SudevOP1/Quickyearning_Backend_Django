@@ -83,6 +83,50 @@ def get_company_profile(ticker_symbol):
     info = ticker.info  # Fetch metadata and profile details
     return info
 
+def get_analysis_data_as_json(ticker_symbol):
+    result = {}
+    try:
+        # Fetch ticker object
+        data = yf.Ticker(ticker_symbol)
+
+        # Access analysis-related attributes
+        analysis_data = {
+            "earnings_estimate": (
+                {str(key): convert_timestamp_to_string(value) for key, value in data.earnings_estimate.to_dict().items()}
+                if data.earnings_estimate is not None
+                else "No earnings estimate data available"
+            ),
+            "revenue_estimate": (
+                {str(key): convert_timestamp_to_string(value) for key, value in data.revenue_estimate.to_dict().items()}
+                if data.revenue_estimate is not None
+                else "No revenue estimate data available"
+            ),
+            "earnings_history": (
+                {str(key): convert_timestamp_to_string(value) for key, value in data.earnings_history.to_dict().items()}
+                if data.earnings_history is not None
+                else "No earnings history data available"
+            ),
+            "eps_trend": (
+                {str(key): convert_timestamp_to_string(value) for key, value in data.eps_trend.to_dict().items()}
+                if data.eps_trend is not None
+                else "No EPS trend data available"
+            ),
+            "growth_estimates": (
+                {str(key): convert_timestamp_to_string(value) for key, value in data.growth_estimates.to_dict().items()}
+                if data.growth_estimates is not None
+                else "No growth estimate data available"
+            )
+        }
+
+        # Serialize the result to JSON format using DateEncoder for date handling
+        result[ticker_symbol] = json.loads(json.dumps(analysis_data, cls=DateEncoder))
+
+    except Exception as e:
+        result[ticker_symbol] = {"error": str(e)}
+
+    return result
+
+
 # Example usage
 if __name__ == "__main__":
 
