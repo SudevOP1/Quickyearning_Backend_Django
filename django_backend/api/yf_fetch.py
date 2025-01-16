@@ -14,6 +14,36 @@ class DateEncoder(json.JSONEncoder):
             return obj.isoformat()
         return super().default(obj)
 
+# Get the last n quarters from the current date
+def get_last_n_quarters(current_date, n):
+    """Generate the last n quarters ending dates from current date"""
+    current_quarter = pd.Timestamp(current_date).quarter
+    current_year = pd.Timestamp(current_date).year
+    
+    quarters = []
+    for _ in range(n):
+        # Adjust current_quarter and current_year based on quarters
+        if current_quarter == 1:
+            quarter_end = pd.Timestamp(f"{current_year}-03-31")
+        elif current_quarter == 2:
+            quarter_end = pd.Timestamp(f"{current_year}-06-30")
+        elif current_quarter == 3:
+            quarter_end = pd.Timestamp(f"{current_year}-09-30")
+        elif current_quarter == 4:
+            quarter_end = pd.Timestamp(f"{current_year}-12-31")
+        
+        # # Only append if the quarter date is not in the future
+        if quarter_end <= pd.Timestamp(current_date):
+            quarters.append(quarter_end.strftime("%m/%d/%Y"))
+        
+        # Move to the previous quarter
+        current_quarter -= 1
+        if current_quarter == 0:
+            current_quarter = 4
+            current_year -= 1
+    
+    return ['Current'] + quarters
+
 # Main Functions
 
 def get_balance_sheet_as_json(ticker_symbol):
@@ -69,8 +99,6 @@ def get_news_as_json(ticker_symbol):
     if news is None:
         return json.dumps({"error": "No calendar data available"})
     return json.loads(json.dumps(news, cls=DateEncoder))
-
-
 
 def get_company_profile(ticker_symbol):
     """
@@ -186,6 +214,107 @@ def get_analysis_data_as_json(ticker_symbol):
 
     return result
 
+# Get stock stats for any ticker symbol for desired number of quarters (max 20)
+def get_stock_statistics_for_quarters(ticker_symbol, num_quarters):
+    """
+    Fetch stock statistics for the specified number of quarters
+    
+    Parameters:
+    ticker_symbol (str): Stock ticker symbol
+    num_quarters (int): Number of historical quarters to fetch
+    """
+    try:
+        # Validate num_quarters
+        num_quarters = max(1, min(num_quarters, 20))  # Limit between 1 and 20 quarters
+        
+        ticker = yf.Ticker(ticker_symbol)
+        info = ticker.info
+        
+        # Get the specified number of quarters
+        dates = get_last_n_quarters(datetime.now(), num_quarters)
+        
+        quarterly_financials = ticker.quarterly_financials
+        quarterly_balance_sheet = ticker.quarterly_balance_sheet
+        
+        statistics = {
+            "Market_Cap": {},  # Add Market_Cap to the statistics
+            "Enterprise_Value": {},
+            "Trailing_PE": {},
+            "Forward_PE": {},
+            "PEG_Ratio": {},
+            "Price_to_Sales": {},
+            "Price_to_Book": {},
+            "Enterprise_Value_to_Revenue": {},
+            "Enterprise_Value_to_EBITDA": {}
+        }
+        
+        for date in dates:
+            try:
+                if date == 'Current':
+                    # Fetch current market cap directly from the info dictionary
+                    market_cap = info.get('marketCap', 0)
+                    statistics["Market_Cap"][date] = f"{market_cap / 1e12:.2f}T" if market_cap > 0 else "--"
+                    statistics["Enterprise_Value"][date] = f"{info.get('enterpriseValue', 0) / 1e12:.2f}T"
+                    statistics["Trailing_PE"][date] = str(info.get('trailingPE', '--'))
+                    statistics["Forward_PE"][date] = str(info.get('forwardPE', '--'))
+                    statistics["PEG_Ratio"][date] = str(info.get('pegRatio', '--'))
+                    statistics["Price_to_Sales"][date] = str(info.get('priceToSalesTrailing12Months', '--'))
+                    statistics["Price_to_Book"][date] = str(info.get('priceToBook', '--'))
+                    statistics["Enterprise_Value_to_Revenue"][date] = str(info.get('enterpriseToRevenue', '--'))
+                    statistics["Enterprise_Value_to_EBITDA"][date] = str(info.get('enterpriseToEbitda', '--'))
+                else:
+                    query_date = pd.to_datetime(date)
+                    
+                    if not quarterly_financials.empty:
+                        # Get index of the closest quarter, check if a valid index is returned
+                        closest_quarter_idx = quarterly_financials.columns.get_indexer([query_date], method='nearest')
+                        
+                        if closest_quarter_idx.size > 0:
+                            closest_quarter = quarterly_financials.columns[closest_quarter_idx[0]]
+                            
+                            net_income = quarterly_financials.loc['Net Income', closest_quarter]
+                            total_revenue = quarterly_financials.loc['Total Revenue', closest_quarter]
+                            
+                            if not quarterly_balance_sheet.empty:
+                                total_assets = quarterly_balance_sheet.loc['Total Assets', closest_quarter]
+                                total_liabilities = quarterly_balance_sheet.loc['Total Liabilities Net Minority Interest', closest_quarter]
+                                book_value = total_assets - total_liabilities
+                                
+                                historical_price = ticker.history(start=closest_quarter, end=closest_quarter + pd.Timedelta(days=1))['Close'].iloc[0]
+                                shares_outstanding = info.get('sharesOutstanding', 0)
+                                
+                                market_cap = historical_price * shares_outstanding
+                                enterprise_value = market_cap + info.get('totalDebt', 0) - info.get('totalCash', 0)
+                                
+                                statistics["Market_Cap"][date] = f"{market_cap / 1e12:.2f}T"  # Market Cap for each quarter
+                                statistics["Enterprise_Value"][date] = f"{enterprise_value / 1e12:.2f}T"
+                                statistics["Trailing_PE"][date] = f"{market_cap / (net_income * 4):.2f}" if net_income > 0 else "--"
+                                statistics["Price_to_Sales"][date] = f"{market_cap / (total_revenue * 4):.2f}" if total_revenue > 0 else "--"
+                                statistics["Price_to_Book"][date] = f"{market_cap / book_value:.2f}" if book_value > 0 else "--"
+                                statistics["Enterprise_Value_to_Revenue"][date] = f"{enterprise_value / (total_revenue * 4):.2f}" if total_revenue > 0 else "--"
+                                statistics["Enterprise_Value_to_EBITDA"][date] = "--"
+                                statistics["Forward_PE"][date] = "--"
+                                statistics["PEG_Ratio"][date] = "--"
+                        else:
+                            # If no match is found, assign "--" to the metrics
+                            for metric in statistics:
+                                statistics[metric][date] = "--"
+                    
+                    # Handle case where the financial data is missing
+                    for metric in statistics:
+                        if date not in statistics[metric]:
+                            statistics[metric][date] = "--"
+            
+            except Exception as e:
+                print(f"Error processing date {date}: {str(e)}")
+                for metric in statistics:
+                    statistics[metric][date] = "--"
+
+        return statistics
+
+    
+    except Exception as e:
+        return {"error": str(e)}
 
 # Example usage
 if __name__ == "__main__":

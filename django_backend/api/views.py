@@ -65,3 +65,10 @@ def get_analysis_data(request, ticker):
         return Response(get_analysis_data_as_json(ticker))
     except Exception as e:
         return Response({"error": str(e)}, status=500)
+
+@api_view(["GET"])
+def get_stock_statistics(request, ticker, quarters):
+    try:
+        return Response(get_stock_statistics_for_quarters(ticker, quarters))
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)

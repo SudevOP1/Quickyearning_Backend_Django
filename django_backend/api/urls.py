@@ -43,4 +43,9 @@ urlpatterns = [
         views.get_analysis_data,
         name="get-analysis-data"
     ),
+    path(
+        'get_stock_stats/<str:ticker>/<int:quarters>/',
+        views.get_stock_statistics,
+        name="get-stock-statistics"
+    )
 ]
