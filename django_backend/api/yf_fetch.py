@@ -111,11 +111,71 @@ def get_analysis_data_as_json(ticker_symbol):
                 if data.eps_trend is not None
                 else "No EPS trend data available"
             ),
+            "eps_revisions": (
+                {str(key): convert_timestamp_to_string(value) for key, value in data.eps_revisions.to_dict().items()}
+                if data.eps_revisions is not None
+                else "No EPS revisions data available"
+            ),
             "growth_estimates": (
                 {str(key): convert_timestamp_to_string(value) for key, value in data.growth_estimates.to_dict().items()}
                 if data.growth_estimates is not None
                 else "No growth estimate data available"
-            )
+            ),
+            "recommendations": (
+                {str(key): convert_timestamp_to_string(value) for key, value in data.recommendations.to_dict().items()}
+                if data.recommendations is not None
+                else "No recommendations data available"
+            ),
+            "recommendations_summary": (    
+                {str(key): convert_timestamp_to_string(value) for key, value in data.recommendations_summary.to_dict().items()}
+                if data.recommendations_summary is not None
+                else "No recommendations summary data available"
+            ),
+            "upgrades_downgrades": (
+                {str(key): convert_timestamp_to_string(value) for key, value in data.upgrades_downgrades.to_dict().items()}
+                if data.upgrades_downgrades is not None
+                else "No upgrades/downgrades data available"
+            ),
+            "sustainability": (
+                {str(key): convert_timestamp_to_string(value) for key, value in data.sustainability.to_dict().items()}
+                if data.sustainability is not None
+                else "No sustainability data available"
+            ),
+            "analyst_price_targets": (
+                {str(key): convert_timestamp_to_string(value) for key, value in data.analyst_price_targets.items()}
+                if data.analyst_price_targets is not None
+                else "No analyst price targets data available"
+            ),
+            "insider-purchases": (
+                {str(key): convert_timestamp_to_string(value) for key, value in data.insider_purchases.to_dict().items()}
+                if data.insider_purchases is not None
+                else "No insider purchases data available"
+            ),
+            "insider_transactions": (
+                {str(key): convert_timestamp_to_string(value) for key, value in data.insider_transactions.to_dict().items()}
+                if data.insider_transactions is not None
+                else "No insider transactions data available"
+            ),
+            "insider_roster_holders": (
+                {str(key): convert_timestamp_to_string(value) for key, value in data.insider_roster_holders.to_dict().items()}
+                if data.insider_roster_holders is not None
+                else "No insider roast holders data available"
+            ),
+            "major_holders": (
+                {str(key): convert_timestamp_to_string(value) for key, value in data.major_holders.to_dict().items()}
+                if data.major_holders is not None
+                else "No major holders data available"
+            ),
+            "institutional_holders": (
+                {str(key): convert_timestamp_to_string(value) for key, value in data.institutional_holders.to_dict().items()}
+                if data.institutional_holders is not None
+                else "No institutional holders data available"
+            ),
+            "mutualfund_holders": (
+                {str(key): convert_timestamp_to_string(value) for key, value in data.mutualfund_holders.to_dict().items()}
+                if data.mutualfund_holders is not None
+                else "No mutual fund holders data available"
+            ),
         }
 
         # Serialize the result to JSON format using DateEncoder for date handling
