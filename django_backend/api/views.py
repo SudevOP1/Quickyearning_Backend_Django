@@ -48,11 +48,9 @@ def get_calendar(request, ticker):
 @api_view(["GET"])
 def get_news(request, ticker):
     try:
-        my_data = yf.Ticker(ticker)
-        news_data = my_data.news
-        if news_data is None:
+        news = yf.Ticker(ticker).news
+        if news is None:
             return Response({"error": "No news data available"})
-        
-        return Response(json.loads(json.dumps(news_data)))
+        return Response(json.loads(json.dumps(news)))
     except Exception as e:
         return Response({"error": str(e)}, status=500)
