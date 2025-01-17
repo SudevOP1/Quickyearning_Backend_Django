@@ -47,5 +47,10 @@ urlpatterns = [
         'get_stock_stats/<str:ticker>/<int:quarters>/',
         views.get_stock_statistics,
         name="get-stock-statistics"
-    )
+    ),
+    path(
+        'get_income_statement/<str:ticker>/',
+        views.get_income_statement,
+        name="get-income-statement"
+    ),
 ]
