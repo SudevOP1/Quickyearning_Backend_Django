@@ -62,4 +62,8 @@ Example: `http://127.0.0.1:8000/api/get_sector_and_industry/RELIANCE.NS`<br>
 Link: `link/api/get_calendar/<ticker_symbol>`<br>
 Example: `http://127.0.0.1:8000/api/get_calendar/RELIANCE.NS`<br>
 
+- News information<br>
+Link: `link/api/get_news/<ticker_symbol>`<br>
+Example: `http://127.0.0.1:8000/api/get_news/RELIANCE.NS`<br>
+
 
