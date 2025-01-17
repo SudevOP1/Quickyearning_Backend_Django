@@ -14,6 +14,15 @@ class DateEncoder(json.JSONEncoder):
             return obj.isoformat()
         return super().default(obj)
 
+def clean_data(data):
+        return {
+            str(key): {
+                sub_key: (None if pd.isna(sub_value) or sub_value in [float('inf'), float('-inf')] else sub_value)
+                for sub_key, sub_value in value.items()
+            }
+            for key, value in data.to_dict().items()
+        } if data is not None else {}
+
 # Get the last n quarters from the current date
 def get_last_n_quarters(current_date, n):
     """Generate the last n quarters ending dates from current date"""
@@ -47,26 +56,26 @@ def get_last_n_quarters(current_date, n):
 # Main Functions
 
 def get_balance_sheet_as_json(ticker_symbol):
-    bs = yf.Ticker(ticker_symbol).balance_sheet
-    bs_json_cleaned = {
-        str(key): {
-            sub_key: (None if pd.isna(sub_value) or sub_value in [float('inf'), float('-inf')] else sub_value)
-            for sub_key, sub_value in value.items()
-        }
-        for key, value in bs.to_dict().items()
+    ticker = yf.Ticker(ticker_symbol)
+    yearly_bs = ticker.balance_sheet
+    quarterly_bs = ticker.quarterly_balance_sheet
+    yearly_bs_cleaned = clean_data(yearly_bs)
+    quarterly_bs_cleaned = clean_data(quarterly_bs)
+    return {
+        "yearly": yearly_bs_cleaned,
+        "quarterly": quarterly_bs_cleaned,
     }
-    return bs_json_cleaned
 
 def get_cash_flow_as_json(ticker_symbol, **kwargs):
-    cf = yf.Ticker(ticker_symbol).cashflow
-    cf_json_cleaned = {
-        str(key): {
-            sub_key: (None if pd.isna(sub_value) or sub_value in [float('inf'), float('-inf')] else sub_value)
-            for sub_key, sub_value in value.items()
-        }
-        for key, value in cf.to_dict().items()
+    ticker = yf.Ticker(ticker_symbol)
+    yearly_cf = ticker.cash_flow
+    quarterly_cf = ticker.quarterly_cash_flow
+    yearly_cf_cleaned = clean_data(yearly_cf)
+    quarterly_cf_cleaned = clean_data(quarterly_cf)
+    return {
+        "yearly": yearly_cf_cleaned,
+        "quarterly": quarterly_cf_cleaned,
     }
-    return cf_json_cleaned
 
 def get_historical_data_as_json(ticker_symbol, **kwargs):
     historical_data = yf.Ticker(ticker_symbol).history(**kwargs)
@@ -101,14 +110,7 @@ def get_news_as_json(ticker_symbol):
     return json.loads(json.dumps(news, cls=DateEncoder))
 
 def get_company_profile(ticker_symbol):
-    """
-    Fetch and display the profile of a company, including its basic details.
-    
-    Parameters:
-        ticker_symbol (str): The ticker symbol of the company.
-    """
-    ticker = yf.Ticker(ticker_symbol)
-    info = ticker.info  # Fetch metadata and profile details
+    info = yf.Ticker(ticker_symbol).info  # Fetch metadata and profile details
     return info
 
 def get_analysis_data_as_json(ticker_symbol):
@@ -214,14 +216,13 @@ def get_analysis_data_as_json(ticker_symbol):
 
     return result
 
-# Get stock stats for any ticker symbol for desired number of quarters (max 20)
 def get_stock_statistics_for_quarters(ticker_symbol, num_quarters):
     """
     Fetch stock statistics for the specified number of quarters
-    
     Parameters:
     ticker_symbol (str): Stock ticker symbol
     num_quarters (int): Number of historical quarters to fetch
+    num_quarters has max 20
     """
     try:
         # Validate num_quarters
@@ -315,6 +316,17 @@ def get_stock_statistics_for_quarters(ticker_symbol, num_quarters):
     
     except Exception as e:
         return {"error": str(e)}
+
+def get_income_statement_as_json(ticker_symbol, **kwargs):
+    ticker = yf.Ticker(ticker_symbol)
+    yearly_income_stmt = ticker.financials
+    quarterly_income_stmt = ticker.quarterly_financials
+    yearly_income_stmt_cleaned = clean_data(yearly_income_stmt)
+    quarterly_income_stmt_cleaned = clean_data(quarterly_income_stmt)
+    return {
+        "yearly": yearly_income_stmt_cleaned,
+        "quarterly": quarterly_income_stmt_cleaned,
+    }
 
 # Example usage
 if __name__ == "__main__":
