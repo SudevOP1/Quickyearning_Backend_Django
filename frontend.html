@@ -87,6 +87,18 @@
             }
         }
 
+        // Function to fetch stock statistics
+        async function fetchStockStats(ticker) {
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/api/get_stock_stats/${ticker}/${quarters}/`);
+                const data = await response.json();
+                console.log("Stock Stats Data: ", data);
+                document.getElementById("stockstats").textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                console.error('Error fetching stock stats:', error);
+            }
+        }
+
         // Call the functions on page load
         window.onload = () => {
             const ticker = "RELIANCE.NS";  // Change this to the desired ticker
@@ -97,6 +109,7 @@
             fetchCalendar(ticker);
             fetchNews(ticker);
             fetchProfile(ticker);
+            fetchStockStats(ticker);
         };
     </script>
 </head>
@@ -119,9 +132,12 @@
     <pre id="calendar">Loading calendar data...</pre>
     
     <h2>News:</h2>
-    <pre id="calendar">Loading news data...</pre>
+    <pre id="news">Loading news data...</pre>
     
-    <h2>News:</h2>
-    <pre id="calendar">Loading profile data...</pre>
+    <h2>Profile:</h2>
+    <pre id="profile">Loading profile data...</pre>
+
+    <h2>StockStats:</h2>
+    <pre id="stockstats">Loading stock stats data...</pre>
 </body>
 </html>
