@@ -66,4 +66,7 @@ Example: `http://127.0.0.1:8000/api/get_calendar/RELIANCE.NS`<br>
 Link: `link/api/get_news/<ticker_symbol>`<br>
 Example: `http://127.0.0.1:8000/api/get_news/RELIANCE.NS`<br>
 
-
+- Stock Statistics
+This API will give the statistics of any ticker symbol and the desired number of quarters. By default the data is displayed for 7 quarters if not provided. Including the current date and the previous n quarters is displayed. It gives information such as Market_Cap, Enterprise_Value, Trailing_PE, Price_to_Sales, Price_to_Book, Enterprise_Value_to_Revenue, Enterprise_Value_to_EBITDA, Forward_PE, PEG_Ratio.
+Link: `server_link/api/get_stock_stats/<ticker_symbol>/<num_of_quarters>`
+Example: `http://127.0.0.1:8000/api/get_stock_stats/RELIANCE.NS/7/`<br>
