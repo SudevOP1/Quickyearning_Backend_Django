@@ -67,7 +67,8 @@ Link: `link/api/get_news/<ticker_symbol>`<br>
 Example: `http://127.0.0.1:8000/api/get_news/RELIANCE.NS`<br>
 
 - Analysis Information<br>
-This API will give you analysis data such as earnings estimates, earning history, revenue estimates, eps trend, eps revisions, growth estimates and many more. You will be getting all this data at the same api endpoint which has the following syntax:
+This API will give you analysis data such as earnings estimates, earning history, revenue estimates, eps trend, eps revisions, growth estimates and many more. You will be getting all this data at the same api endpoint which has the following syntax -
+
 Link: `link/api/get_analysis_data/<ticker_symbol>`<br>
 Example: `http://127.0.0.1:8000/api/get_analysis_data/RELIANCE.NS`<br>
 
